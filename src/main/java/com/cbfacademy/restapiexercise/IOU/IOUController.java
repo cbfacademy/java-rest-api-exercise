@@ -1,6 +1,5 @@
-package com.cbfacademy.restapiexercise;
+package com.cbfacademy.restapiexercise.IOU;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;

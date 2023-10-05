@@ -1,7 +1,6 @@
-package com.cbfacademy.restapiexercise;
+package com.cbfacademy.restapiexercise.IOU;
 
 import java.math.BigDecimal;
-import java.sql.Date;
 import java.time.Instant;
 import java.util.UUID;
 
