@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,20 +21,23 @@ public class IOUController {
 		return String.format("Service running successfully " + Instant.now().toString());
 	}
 
-	@GetMapping
+	@GetMapping("/")
 	public List<IOU> getIOUs() {
 		return ious;
 	}
 
 	@GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public IOU getIOUById(@PathVariable UUID id) {
-		return ious.stream()
-				.filter(item -> item.getId().equals(id))
-				.findFirst()
-				.orElse(null);
+	public ResponseEntity<IOU> getIOUById(@PathVariable UUID id) {
+		for (IOU iou : ious) {
+			if (iou.getId().equals(id)) {
+				return ResponseEntity.ok(iou);
+			}
+		}
+
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 	}
 
-	@PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
 	public IOU createIOU(@RequestBody IOU iou) {
 		iou.setId(UUID.randomUUID());
 		iou.setDateTime(Instant.now());
