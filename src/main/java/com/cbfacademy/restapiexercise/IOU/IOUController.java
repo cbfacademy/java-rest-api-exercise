@@ -33,11 +33,12 @@ public class IOUController {
 	}
 
 	@PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-	public IOU createIOU(@RequestBody IOU item) {
-		item.setId(UUID.randomUUID());
-		item.setDateTime(Instant.now());
-		ious.add(item);
-		return item;
+	public IOU createIOU(@RequestBody IOU iou) {
+		iou.setId(UUID.randomUUID());
+		iou.setDateTime(Instant.now());
+		ious.add(iou);
+
+		return iou;
 	}
 
 }
