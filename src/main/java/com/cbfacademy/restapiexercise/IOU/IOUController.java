@@ -41,4 +41,27 @@ public class IOUController {
 		return iou;
 	}
 
+	// Update an existing IOU by ID
+	@PutMapping("/{id}")
+	public IOU updateIOU(@PathVariable UUID id, @RequestBody IOU updatedIOU) {
+		for (IOU iou : ious) {
+			if (iou.getId().equals(id)) {
+				iou.setLender(updatedIOU.getLender());
+				iou.setBorrower(updatedIOU.getBorrower());
+				iou.setAmount(updatedIOU.getAmount());
+				iou.setDateTime(updatedIOU.getDateTime());
+
+				return iou;
+			}
+		}
+
+		return null;
+	}
+
+	// Delete an IOU by ID
+	@DeleteMapping("/{id}")
+	public void deleteIOU(@PathVariable UUID id) {
+		ious.removeIf(iou -> iou.getId().equals(id));
+	}
+
 }
