@@ -16,7 +16,7 @@ public class IOUController {
 
 	@GetMapping("/ping")
 	public String ping() {
-		return String.format("Service running successfully "+Instant.now().toString());
+		return String.format("Service running successfully " + Instant.now().toString());
 	}
 
 	@GetMapping
@@ -24,20 +24,20 @@ public class IOUController {
 		return ious;
 	}
 
-	@GetMapping(value="/{id}",produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public IOU getIOUById(@PathVariable UUID id) {
 		return ious.stream()
-            .filter(item -> item.getId().equals(id))
-            .findFirst()
-            .orElse(null);
+				.filter(item -> item.getId().equals(id))
+				.findFirst()
+				.orElse(null);
 	}
 
 	@PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
 	public IOU createIOU(@RequestBody IOU item) {
 		item.setId(UUID.randomUUID());
 		item.setDateTime(Instant.now());
-        ious.add(item);
-        return item;
+		ious.add(item);
+		return item;
 	}
 
 }

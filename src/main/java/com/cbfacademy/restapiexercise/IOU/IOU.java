@@ -5,14 +5,15 @@ import java.time.Instant;
 import java.util.UUID;
 
 public class IOU {
-	
+
 	UUID id;
 	String borrower;
 	String lender;
 	BigDecimal amount;
 	Instant dateTime;
 
-	public IOU(){}
+	public IOU() {
+	}
 
 	public IOU(String borrower, String lender, BigDecimal amount, Instant dateTime) {
 		this.id = UUID.randomUUID();
@@ -22,18 +23,43 @@ public class IOU {
 		this.dateTime = dateTime;
 	}
 
-	public UUID getId() { return this.id; }
-    public void setId(UUID id) { this.id = id; }
+	public UUID getId() {
+		return this.id;
+	}
 
-	public String getBorrower() { return this.borrower; }
-    public void setBorrower(String borrower) { this.borrower = borrower; }
+	public void setId(UUID id) {
+		this.id = id;
+	}
 
-	public String getLender() { return this.lender; }
-    public void setLender(String lender) { this.lender = lender; }
+	public String getBorrower() {
+		return this.borrower;
+	}
 
-	public BigDecimal getAmount() { return this.amount; }
-    public void setAmount(BigDecimal amount) { this.amount = amount; }
+	public void setBorrower(String borrower) {
+		this.borrower = borrower;
+	}
 
-	public Instant getDateTime() { return this.dateTime; }
-    public void setDateTime(Instant dateTime) { this.dateTime = dateTime; }
+	public String getLender() {
+		return this.lender;
+	}
+
+	public void setLender(String lender) {
+		this.lender = lender;
+	}
+
+	public BigDecimal getAmount() {
+		return this.amount;
+	}
+
+	public void setAmount(BigDecimal amount) {
+		this.amount = amount;
+	}
+
+	public Instant getDateTime() {
+		return this.dateTime;
+	}
+
+	public void setDateTime(Instant dateTime) {
+		this.dateTime = dateTime;
+	}
 }
