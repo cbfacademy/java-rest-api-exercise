@@ -7,19 +7,26 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Description;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import com.cbfacademy.restapiexercise.IOU.IOU;
+import com.cbfacademy.restapiexercise.ious.FakeIOUService;
+import com.cbfacademy.restapiexercise.ious.IOU;
 
 import java.math.BigDecimal;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -31,80 +38,90 @@ class IOUControllerTests {
 	@LocalServerPort
 	private int port;
 
-	private URL base;
+	private URI baseURI;
 
 	@Autowired
 	private TestRestTemplate restTemplate;
 
+	private List<IOU> defaultIOUs = new ArrayList<>() {
+		{
+			add(new IOU("John", "Alice", new BigDecimal("100.00"), getInstant(24)));
+			add(new IOU("Bob", "Eve", new BigDecimal("50.00"), getInstant(48)));
+			add(new IOU("Charlie", "Grace", new BigDecimal("200.00"), getInstant(72)));
+		}
+	};
+
+	@Autowired
+	private FakeIOUService iouService; // Inject the FakeIOUService
+
 	@BeforeEach
 	public void setUp() throws Exception {
-		this.base = new URL("http://localhost:" + port + "/ious");
+		this.baseURI = UriComponentsBuilder.newInstance()
+				.scheme("http")
+				.host("localhost")
+				.port(port)
+				.path("api/ious")
+				.build()
+				.toUri();
+
+		// Remove any existing IOUs
+		for (Iterator<IOU> it = iouService.getAllIOUs().iterator(); it.hasNext();) {
+			it.next();
+			it.remove();
+		}
+
+		// Add default IOUs
+		for (IOU iou : defaultIOUs) {
+			iouService.createIOU(iou);
+		}
 	}
 
 	@Test
-	@Description("/ping endpoint returns expected response")
-	public void ping_ExpectedResponse() {
-		ResponseEntity<String> response = restTemplate.getForEntity(base.toString() + "/ping", String.class);
-
-		assertEquals(200, response.getStatusCode().value());
-		assertTrue(response.getBody().startsWith("Service running successfully"));
-	}
-
-	@Test
+	@Description("POST /api/ious creates new IOU")
 	public void testCreateIOU() {
 		IOU iou = new IOU("John", "Alice", new BigDecimal("100.00"), getInstant(0));
-		ResponseEntity<IOU> response = restTemplate.postForEntity("/ious/", iou, IOU.class);
+		ResponseEntity<IOU> response = restTemplate.postForEntity(baseURI.toString(), iou, IOU.class);
 
-		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(HttpStatus.CREATED, response.getStatusCode());
 		assertNotNull(response.getBody());
 		assertNotNull(response.getBody().getId());
 	}
 
 	@Test
-	public void testGetAllIOUs() {
-		List<IOU> ious = new ArrayList<>() {
-			{
-				add(new IOU("John", "Alice", new BigDecimal("100.00"), getInstant(24)));
-				add(new IOU("Bob", "Eve", new BigDecimal("50.00"), getInstant(48)));
-				add(new IOU("Charlie", "Grace", new BigDecimal("200.00"), getInstant(72)));
-			}
-		};
-
-		for (IOU iou : ious) {
-			restTemplate.postForEntity("/ious/", iou, IOU.class);
-		}
-
-		ResponseEntity<IOU[]> response = restTemplate.getForEntity("/ious/", IOU[].class);
-		IOU[] responseIOUs = response.getBody();
+	@Description("GET /api/ious returns all IOUs")
+	public void testGetAllIOUs() throws URISyntaxException {
+		ResponseEntity<List<IOU>> response = restTemplate.exchange(baseURI, HttpMethod.GET, null,
+				new ParameterizedTypeReference<List<IOU>>() {
+				});
+		List<IOU> responseIOUs = response.getBody();
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertNotNull(responseIOUs);
-		assertTrue(ious.size() <= responseIOUs.length);
+		assertTrue(defaultIOUs.size() == responseIOUs.size());
 	}
 
 	@Test
+	@Description("GET /api/ious/{id} returns matching IOU")
 	public void testGetIOUById() {
-		IOU iou = new IOU("John", "Alice", new BigDecimal("100.00"), getInstant(0));
-		ResponseEntity<IOU> createResponse = restTemplate.postForEntity("/ious/", iou, IOU.class);
-
-		IOU createdIOU = createResponse.getBody();
-		ResponseEntity<IOU> response = restTemplate.getForEntity("/ious/" + createdIOU.getId(), IOU.class);
+		IOU iou = selectRandomIOU();
+		URI endpoint = getEndpoint(iou);
+		ResponseEntity<IOU> response = restTemplate.getForEntity(endpoint, IOU.class);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertNotNull(response.getBody());
-		assertEquals(createdIOU.getId(), response.getBody().getId());
+		assertEquals(iou.getId(), response.getBody().getId());
 	}
 
 	@Test
+	@Description("PUT /api/ious/{id} updates matching IOU")
 	public void testUpdateIOU() {
-		IOU iou = new IOU("John", "Alice", new BigDecimal("100.00"), getInstant(0));
-		ResponseEntity<IOU> createResponse = restTemplate.postForEntity("/ious/", iou, IOU.class);
+		IOU iou = selectRandomIOU();
+		URI endpoint = getEndpoint(iou);
 
-		IOU createdIOU = createResponse.getBody();
-		createdIOU.setLender("UpdatedLender");
+		iou.setLender("UpdatedLender");
+		restTemplate.put(endpoint, iou);
 
-		restTemplate.put("/ious/" + createdIOU.getId(), createdIOU);
-		ResponseEntity<IOU> response = restTemplate.getForEntity("/ious/" + createdIOU.getId(), IOU.class);
+		ResponseEntity<IOU> response = restTemplate.getForEntity(endpoint, IOU.class);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertNotNull(response.getBody());
@@ -112,16 +129,33 @@ class IOUControllerTests {
 	}
 
 	@Test
+	@Description("DELETE /api/ious/{id} deletes matching IOU")
 	public void testDeleteIOU() {
-		IOU iou = new IOU("John", "Alice", new BigDecimal("100.00"), getInstant(0));
-		ResponseEntity<IOU> createResponse = restTemplate.postForEntity("/ious/", iou, IOU.class);
+		URI endpoint = getEndpoint(selectRandomIOU());
+		ResponseEntity<IOU> foundResponse = restTemplate.getForEntity(endpoint, IOU.class);
 
-		IOU createdIOU = createResponse.getBody();
-		restTemplate.delete("/ious/" + createdIOU.getId());
+		restTemplate.delete(endpoint);
 
-		ResponseEntity<IOU> response = restTemplate.getForEntity("/ious/" + createdIOU.getId(), IOU.class);
+		ResponseEntity<IOU> deletedResponse = restTemplate.getForEntity(endpoint, IOU.class);
 
-		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+		assertEquals(HttpStatus.OK, foundResponse.getStatusCode());
+		assertEquals(HttpStatus.NOT_FOUND, deletedResponse.getStatusCode());
+	}
+
+	private IOU selectRandomIOU() {
+		List<IOU> ious = iouService.getAllIOUs();
+
+		if (ious.isEmpty()) {
+			return null;
+		}
+
+		int randomIndex = new Random().nextInt(ious.size());
+
+		return ious.get(randomIndex);
+	}
+
+	private URI getEndpoint(IOU iou) {
+		return appendPath(baseURI, iou.getId().toString());
 	}
 
 	private Instant getInstant(int hoursToSubtract) {
@@ -137,5 +171,9 @@ class IOUControllerTests {
 		Instant instant = resultDateTime.toInstant();
 
 		return instant;
+	}
+
+	private URI appendPath(URI uri, String path) {
+		return UriComponentsBuilder.fromUri(uri).pathSegment(path).build().encode().toUri();
 	}
 }
