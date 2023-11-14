@@ -86,7 +86,7 @@ If you are on a Windows machine, that will be:
 mvnw clean dependency:resolve
 ```
 
-#### 3. Running the Application
+### Running the Application
 
 To start the API from the terminal, run the following command:
 
@@ -100,6 +100,27 @@ Or on Windows:
 mvnw spring-boot:run
 ```
 
+### Testing the Application
+
+You can test your endpoints using [Postman][4] or your preferred REST client.
+
+For `POST` and `PUT` requests, you'll need to provide a request body in JSON format, e.g.:
+
+```json
+{
+  "id": "d1415cfc-dbd9-4474-94fc-52e194e384fa",
+  "borrower": "John Doe",
+  "lender": "Alice Smith",
+  "amount": 100.0,
+  "dateTime": "2023-11-02T14:30:00Z"
+}
+```
+
+#### :bulb: Note
+
+Remember that the `id` property may not be needed for all request types.
+
 [1]: https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html
 [2]: https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/stereotype/Service.html
 [3]: https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/bind/annotation/RestController.html
+[4]: https://www.postman.com
