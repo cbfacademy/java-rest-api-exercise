@@ -11,16 +11,16 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ListIOUServiceTest {
+public class DefaultIOUServiceTest {
 
-    private ListIOUService service;
+    private DefaultIOUService service;
     private IOURepository mockRepository;
     private IOU iou1, iou2;
 
     @BeforeEach
     void setUp() {
         mockRepository = Mockito.mock(IOURepository.class);
-        service = new ListIOUService(mockRepository);
+        service = new DefaultIOUService(mockRepository);
         iou1 = new IOU("Borrower1", "Lender1", BigDecimal.valueOf(1000), Instant.now());
         iou2 = new IOU("Borrower2", "Lender2", BigDecimal.valueOf(500), Instant.now());
     }
