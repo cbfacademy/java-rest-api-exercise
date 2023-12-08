@@ -27,13 +27,22 @@ A representative HTTP response will look something like this:
 }
 ```
 
+### Implement the Repository
+
+A repository interface, `IOURepository` has been provided for you. Create a class that implements this interface using a `List` instance as the backing store and name it something sensible, e.g. `ListIOURepository`, with the following members:
+
+- `final List<IOU> ious = new ArrayList<>()` - list of IOUs stored in the API
+
+Set the appropriate accessibility modifiers for all members and annotate the class as a [Repository][2]. Pay attention to the exceptions defined on the interfaces and ensure your concrete class throws as appropriate.
+
 ### Implement the Service
 
 A service interface, `IOUService` has been provided for you. Create a class that implements this interface using a `List` instance as the backing store and name it something sensible, e.g. `ListIOUService`, with the following members:
 
-- `final List<IOU> ious = new ArrayList<>();`
+- `final List<IOU> ious = new ArrayList<>()` - 
+- `public ListIOUService (IOURepository iouRepository)`
 
-Set the appropriate accessibility modifiers for all members and annotate the class as a [Service][2].
+Set the appropriate accessibility modifiers for all members and annotate the class as a [Service][3]. Ensure your code appropriately handles any exceptions thrown by the repository class.
 
 ### Implement the Controller
 
@@ -52,7 +61,7 @@ Add additional methods that defines endpoints for the following operations:
 | `PUT`    | `/api/ious/{id}` | Replace an IOU by Id |
 | `DELETE` | `/api/ious/{id}` | Delete an IOU by id  |
 
-Set the appropriate accessibility modifiers for all members and annotate the class as a [RestController][3].
+Set the appropriate accessibility modifiers for all members and annotate the class as a [RestController][4].
 
 ## Learning Objectives:
 
@@ -61,6 +70,7 @@ By the end of this exercise, you should be able to:
 - Set up a Spring Boot project using a development environment
 - Create a simple RESTful API for IOU tracking using controllers, services and models.
 - Implement CRUD operations (Create, Read, Update, Delete) for IOUs
+- Implement graceful exception handling
 
 ## Getting Started
 
@@ -102,7 +112,7 @@ mvnw spring-boot:run
 
 ### Testing the Application
 
-You can test your endpoints using [Postman][4] or your preferred REST client.
+You can test your endpoints using [Postman][5] or your preferred REST client.
 
 For `POST` and `PUT` requests, you'll need to provide a request body in JSON format, e.g.:
 
@@ -121,6 +131,7 @@ For `POST` and `PUT` requests, you'll need to provide a request body in JSON for
 Remember that the `id` property may not be needed for all request types.
 
 [1]: https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html
-[2]: https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/stereotype/Service.html
-[3]: https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/bind/annotation/RestController.html
-[4]: https://www.postman.com
+[3]: https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/stereotype/Repository.html
+[3]: https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/stereotype/Service.html
+[4]: https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/bind/annotation/RestController.html
+[5]: https://www.postman.com
