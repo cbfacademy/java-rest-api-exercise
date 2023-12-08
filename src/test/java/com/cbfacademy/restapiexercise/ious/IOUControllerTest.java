@@ -4,16 +4,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Description;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.cbfacademy.restapiexercise.ProjectApplication;
+import com.cbfacademy.restapiexercise.core.ApiErrorResponse;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -23,13 +27,17 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest(classes = ProjectApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class IOUControllerTest {
@@ -50,11 +58,11 @@ class IOUControllerTest {
 		}
 	};
 
-	@Autowired
-	private FakeIOUService iouService; // Inject the FakeIOUService
+	@MockBean
+	private IOUService iouService;
 
 	@BeforeEach
-	public void setUp() throws Exception {
+	void setUp() throws RuntimeException {
 		this.baseURI = UriComponentsBuilder.newInstance()
 				.scheme("http")
 				.host("localhost")
@@ -63,94 +71,179 @@ class IOUControllerTest {
 				.build()
 				.toUri();
 
-		// Remove any existing IOUs
-		for (Iterator<IOU> it = iouService.getAllIOUs().iterator(); it.hasNext();) {
-			it.next();
-			it.remove();
-		}
-
-		// Add default IOUs
-		for (IOU iou : defaultIOUs) {
-			iouService.createIOU(iou);
-		}
+		when(iouService.getAllIOUs()).thenReturn(defaultIOUs);
 	}
 
 	@Test
 	@Description("POST /api/ious creates new IOU")
-	public void testCreateIOU() {
-		IOU iou = new IOU("John", "Alice", new BigDecimal("100.00"), getInstant(0));
+	void createIOU() {
+		// Arrange
+		IOU iou = createNewIOU();
+
+		when(iouService.createIOU(any(IOU.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+		// Act
 		ResponseEntity<IOU> response = restTemplate.postForEntity(baseURI.toString(), iou, IOU.class);
 
+		// Assert
 		assertEquals(HttpStatus.CREATED, response.getStatusCode());
 		assertNotNull(response.getBody());
 		assertNotNull(response.getBody().getId());
+		verify(iouService).createIOU(any(IOU.class));
 	}
 
 	@Test
 	@Description("GET /api/ious returns all IOUs")
-	public void testGetAllIOUs() throws URISyntaxException {
+	void getAllIOUs() throws URISyntaxException {
+		// Act
 		ResponseEntity<List<IOU>> response = restTemplate.exchange(baseURI, HttpMethod.GET, null,
 				new ParameterizedTypeReference<List<IOU>>() {
 				});
 		List<IOU> responseIOUs = response.getBody();
 
+		// Assert
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertNotNull(responseIOUs);
-		assertTrue(defaultIOUs.size() == responseIOUs.size());
+		assertEquals(defaultIOUs.size(), responseIOUs.size());
+		verify(iouService).getAllIOUs();
 	}
 
 	@Test
 	@Description("GET /api/ious/{id} returns matching IOU")
-	public void testGetIOUById() {
+	void getIOUById() {
+		// Arrange
 		IOU iou = selectRandomIOU();
 		URI endpoint = getEndpoint(iou);
+
+		when(iouService.getIOU(any(UUID.class))).thenReturn(iou);
+
+		// Act
 		ResponseEntity<IOU> response = restTemplate.getForEntity(endpoint, IOU.class);
 
+		// Assert
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertNotNull(response.getBody());
 		assertEquals(iou.getId(), response.getBody().getId());
+		verify(iouService).getIOU(iou.getId());
+	}
+
+	@Test
+	@Description("GET /api/ious/{id} returns 404 for invalid IOU")
+	void getInvalidIOU() {
+		// Arrange
+		IOU iou = createNewIOU();
+		URI endpoint = getEndpoint(iou);
+
+		when(iouService.getIOU(any(UUID.class))).thenThrow(new IOUNotFoundException("IOU not found"));
+
+		// Act
+		ResponseEntity<ApiErrorResponse> response = restTemplate.getForEntity(endpoint, ApiErrorResponse.class);
+
+		// Assert
+		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+		assertNotNull(response.getBody());
+		assertEquals("IOU not found", response.getBody().getMessage());
+		verify(iouService).getIOU(iou.getId());
 	}
 
 	@Test
 	@Description("PUT /api/ious/{id} updates matching IOU")
-	public void testUpdateIOU() {
+	void updateIOU() {
+		// Arrange
 		IOU iou = selectRandomIOU();
 		URI endpoint = getEndpoint(iou);
 
+		when(iouService.getIOU(any(UUID.class))).thenReturn(iou);
+		when(iouService.updateIOU(any(UUID.class), any(IOU.class))).thenReturn(iou);
+
+		// Act
 		iou.setLender("UpdatedLender");
 		restTemplate.put(endpoint, iou);
 
 		ResponseEntity<IOU> response = restTemplate.getForEntity(endpoint, IOU.class);
+		IOU updatedIOU = response.getBody();
 
+		// Assert
 		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(iou.getId(), updatedIOU.getId());
+		assertEquals("UpdatedLender", updatedIOU.getLender());
+		verify(iouService).getIOU(iou.getId());
+		verify(iouService).updateIOU(any(UUID.class), any(IOU.class));
+	}
+
+	@Test
+	@Description("PUT /api/ious/{id} returns 404 for invalid IOU")
+	void updateInvalidIOU() {
+		// Arrange
+		IOU iou = createNewIOU();
+		URI endpoint = getEndpoint(iou);
+
+		when(iouService.updateIOU(any(UUID.class), any(IOU.class)))
+				.thenThrow(new IOUNotFoundException("IOU not found"));
+
+		// Act
+		RequestEntity<IOU> request = RequestEntity.put(endpoint).accept(MediaType.APPLICATION_JSON).body(iou);
+		ResponseEntity<ApiErrorResponse> response = restTemplate.exchange(request, ApiErrorResponse.class);
+
+		// Assert
+		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
 		assertNotNull(response.getBody());
-		assertEquals("UpdatedLender", response.getBody().getLender());
+		assertEquals("IOU not found", response.getBody().getMessage());
+		verify(iouService).updateIOU(any(UUID.class), any(IOU.class));
 	}
 
 	@Test
 	@Description("DELETE /api/ious/{id} deletes matching IOU")
-	public void testDeleteIOU() {
-		URI endpoint = getEndpoint(selectRandomIOU());
+	void deleteIOU() {
+		// Arrange
+		IOU iou = selectRandomIOU();
+		URI endpoint = getEndpoint(iou);
 		ResponseEntity<IOU> foundResponse = restTemplate.getForEntity(endpoint, IOU.class);
 
+		doAnswer(invocation -> {
+			return null;
+		}).when(iouService).deleteIOU(any(UUID.class));
+		when(iouService.getIOU(any(UUID.class))).thenThrow(new IOUNotFoundException("IOU not found"));
+
+		// Act
 		restTemplate.delete(endpoint);
 
 		ResponseEntity<IOU> deletedResponse = restTemplate.getForEntity(endpoint, IOU.class);
 
+		// Assert
 		assertEquals(HttpStatus.OK, foundResponse.getStatusCode());
 		assertEquals(HttpStatus.NOT_FOUND, deletedResponse.getStatusCode());
+		verify(iouService).deleteIOU(iou.getId());
+	}
+
+	@Test
+	@Description("DELETE /api/ious/{id} returns 404 for invalid IOU")
+	void deleteInvalidIOU() {
+		// Arrange
+		IOU iou = createNewIOU();
+		URI endpoint = getEndpoint(iou);
+
+		doThrow(new IOUNotFoundException("IOU not found")).when(iouService).deleteIOU(any(UUID.class));
+
+		// Act
+		RequestEntity<?> request = RequestEntity.delete(endpoint).accept(MediaType.APPLICATION_JSON).build();
+		ResponseEntity<ApiErrorResponse> response = restTemplate.exchange(request, ApiErrorResponse.class);
+
+		// Assert
+		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+		assertNotNull(response.getBody());
+		assertEquals("IOU not found", response.getBody().getMessage());
+		verify(iouService).deleteIOU(iou.getId());
 	}
 
 	private IOU selectRandomIOU() {
-		List<IOU> ious = iouService.getAllIOUs();
+		int randomIndex = new Random().nextInt(defaultIOUs.size());
 
-		if (ious.isEmpty()) {
-			return null;
-		}
+		return defaultIOUs.get(randomIndex);
+	}
 
-		int randomIndex = new Random().nextInt(ious.size());
-
-		return ious.get(randomIndex);
+	private IOU createNewIOU() {
+		return new IOU("John", "Alice", new BigDecimal("100.00"), getInstant(0));
 	}
 
 	private URI getEndpoint(IOU iou) {
