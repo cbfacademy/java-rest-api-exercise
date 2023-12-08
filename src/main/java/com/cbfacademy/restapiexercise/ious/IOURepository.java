@@ -3,7 +3,7 @@ package com.cbfacademy.restapiexercise.ious;
 import java.util.List;
 import java.util.UUID;
 
-import com.cbfacademy.restapiexercise.Repository;
+import com.cbfacademy.restapiexercise.core.Repository;
 
 /**
  * The IOURepository interface defines the operations for managing IOUs in the system.

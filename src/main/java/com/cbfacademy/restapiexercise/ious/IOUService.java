@@ -41,9 +41,7 @@ public interface IOUService {
      * Delete an IOU by its ID.
      *
      * @param id The ID of the IOU to delete.
-     * @return true if the IOU was successfully deleted, false if the ID was not
-     *         found.
      */
-    boolean deleteIOU(UUID id);
+    void deleteIOU(UUID id);
 
 }
