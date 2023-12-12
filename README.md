@@ -131,7 +131,7 @@ For `POST` and `PUT` requests, you'll need to provide a request body in JSON for
 Remember that the `id` property may not be needed for all request types.
 
 [1]: https://docs.oracle.com/javase/8/docs/api/java/util/UUID.html
-[3]: https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/stereotype/Repository.html
+[2]: https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/stereotype/Repository.html
 [3]: https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/stereotype/Service.html
 [4]: https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/bind/annotation/RestController.html
 [5]: https://www.postman.com
