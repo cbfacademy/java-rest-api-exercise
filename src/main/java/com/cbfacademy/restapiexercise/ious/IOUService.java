@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class IOUService {
   
-  private  IOURepository iouRepository;
+  private final  IOURepository iouRepository;
 
   public IOUService(IOURepository iouRepository) {
     this.iouRepository = iouRepository;
