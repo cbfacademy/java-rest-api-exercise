@@ -35,12 +35,9 @@ public List<IOU> getAllIOUs(String borrower) {
 
 @GetMapping("/{id}")
 public ResponseEntity<IOU> getIOUById(@PathVariable Long id){
-    Optional<IOU> iou = iouService.getIOUById(id);
-    return iou.map(ResponseEntity::ok)
-    .orElseGet(() -> ResponseEntity.notFound().build());
+    Optional<IOU> iou = iouService.getIOU(UUID id);
+    return iou.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
 }
-
-
 
 @PostMapping (produces = "application/json")
 public IOU createIOU (@RequestBody IOU iou) {
@@ -63,6 +60,3 @@ public ResponseEntity<Void> deleteIOU(@PathVariable Long id) {
 
 
 }
-
-
-

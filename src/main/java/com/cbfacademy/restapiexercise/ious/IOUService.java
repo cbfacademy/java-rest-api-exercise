@@ -8,36 +8,32 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 
 @Service
-
 public class IOUService {
-    private IOURepository iouRepository;
-    public IOUService(IOURepository iouRepository){
-        this.iouRepository=iouRepository;
-    }
-    
-    public List<IOU> getAllIOUs(){
-        return this.iouRepository.findAll();
-    }
-public IOU getIOU(UUID id) throws NoSuchElementException{
-    return this.iouRepository.findById(id).orElseThrow();
-}
+  
+  private  IOURepository iouRepository;
 
-public IOU createIOU(IOU iou) throws IllegalArgumentException,
- OptimisticLockingFailureException {
+  public IOUService(IOURepository iouRepository) {
+    this.iouRepository = iouRepository;
+  }
+
+  public List<IOU> getAllIOUs() {
+    return this.iouRepository.findAll();
+  }
+
+  public IOU getIOU(UUID id) throws NoSuchElementException {
+    return this.iouRepository.findById(id).orElseThrow();
+  }
+
+  public IOU createIOU(IOU iou) throws IllegalArgumentException, OptimisticLockingFailureException {
     return this.iouRepository.save(iou);
- }
- public IOU updateIOU(UUID id, IOU updatedIOU) throws NoSuchElementException {
-    IOU existingIOU = iouRepository.findById(id)
-            .orElseThrow();
-    return iouRepository.save(existingIOU); 
- 
-}
-public void deleteIOU(UUID id){
-    this.iouRepository.deleteById(id);
-    
-}
- public List<IOU> getIOUsByBorrower(String borrower){
-    return iouRepository.findByBorrower(borrower);
-}
+  }
+
+  // public IOU updateIOU(UUID id, IOU updatedIOU) throws NoSuchElementException {
+  //   return this.iouRepository.
+  // }
+
+  public void deleteIOU(UUID id) {
+    this.iouRepository.delete(getIOU(id));
+  }
 
 }

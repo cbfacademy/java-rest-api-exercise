@@ -27,6 +27,10 @@ public class IOU {
     this.amount = amount;
     this.dateTime = dateTime;
   }
+  //this is a default constructor with all parameters 
+  public IOU (){
+    this(null, null, BigDecimal.ZERO,Instant.now());
+  }
 
   public UUID getId() {
     return this.id;
