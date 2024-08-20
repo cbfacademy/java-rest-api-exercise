@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 public class IOUService {
   
   private final  IOURepository iouRepository;
+    
 
   public IOUService(IOURepository iouRepository) {
     this.iouRepository = iouRepository;
@@ -44,5 +45,10 @@ public class IOUService {
   public void deleteIOU(UUID id) {
     this.iouRepository.delete(getIOU(id));
   }
+public List <IOU> getIOUsByBorrower(String borrower){
+  return this.iouRepository.findByBorrower(borrower);
+  
+}
+
 
 }

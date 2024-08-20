@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -28,9 +29,17 @@ public class IOUController{
 
 
 @GetMapping(produces = "application/json")
-public List<IOU> getAllIOUs() {
-    return iouService.getAllIOUs();
+public List<IOU> getAllIOUs(@RequestParam(required = false) String borrower) {
+    System.out.println("Received borrower parameter: " + borrower);
+    //if borrower is provided, and the vaule provided is meaningful
+    if (borrower !=null && !borrower.isEmpty()){
+    return iouService.getIOUsByBorrower(borrower);
+}
+    else{
+        return iouService.getAllIOUs();      //return All IOUs 
+    } 
     }
+    
 
 @GetMapping("/{id}")
 public ResponseEntity<IOU> getIOUById(@PathVariable UUID id){
