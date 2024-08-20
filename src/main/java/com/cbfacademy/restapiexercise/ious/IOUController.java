@@ -34,7 +34,7 @@ public List<IOU> getAllIOUs() {
 @GetMapping("/{id}")
 public ResponseEntity<IOU> getIOUById(@PathVariable UUID id){
     IOU iou = iouService.getIOU(id);
-    return  ResponseEntity.notFound().build();
+    return  ResponseEntity.ok(iou);
 }
 
 @PostMapping (produces = "application/json")
