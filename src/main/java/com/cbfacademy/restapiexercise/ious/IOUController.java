@@ -1,6 +1,7 @@
 package com.cbfacademy.restapiexercise.ious;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
@@ -42,14 +43,15 @@ public IOU createIOU (@RequestBody IOU iou) {
     return iouService.createIOU(iou);
 }
 
-@PutMapping("/{id}")
-public ResponseEntity<IOU> updateIOU(@PathVariable UUID id, @RequestBody IOU iou) {
-    Optional<IOU> updatedIOU = iouService.updateIOU(id, iou);
-    return updatedIOU.map(ResponseEntity::ok)
-                     .orElseGet(() -> ResponseEntity.notFound().build());
+@PutMapping(value="/{id}", produces = "application/json")
+    public ResponseEntity<IOU> updateIou(@PathVariable UUID id, @RequestBody IOU iou) {
+        try{
+        IOU updatedIou =iouService.updateIOU(id,iou);
+          return ResponseEntity.ok(updatedIou); //return 200 ok with iou
+        }catch (NoSuchElementException e) {
+         return ResponseEntity.notFound().build();
+    }
 }
-//UUID id, IOU updatedIOU
-
 
 @DeleteMapping("/{id}")
 public ResponseEntity<Void> deleteIOU(@PathVariable UUID id) {

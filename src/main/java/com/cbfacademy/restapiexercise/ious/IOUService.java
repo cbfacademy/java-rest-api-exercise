@@ -28,11 +28,18 @@ public class IOUService {
     return this.iouRepository.save(iou);
   }
 
- public IOU updateIOU(UUID id, IOU updatedIOU) throws NoSuchElementException {
-  IOU existingIOU = this.iouRepository.findById(id)
-  .orElseThrow(() -> new NoSuchElementException("No IOU found with id: " + id));
-  return this.iouRepository.save(existingIOU);
- }
+  public IOU updateIOU(UUID id, IOU updatedIOU) {
+    IOU existingIOU = getIOU(id); {
+        // Update the existing IOU with values from the updatedIOU
+        existingIOU.setAmount(updatedIOU.getAmount());
+        existingIOU.setBorrower(updatedIOU.getBorrower());
+        existingIOU.setLender(updatedIOU.getLender());
+        existingIOU.setDateTime(updatedIOU.getDateTime());
+        // Save the updated IOU back to the database
+        return iouRepository.save(existingIOU);
+    }};
+
+
 
   public void deleteIOU(UUID id) {
     this.iouRepository.delete(getIOU(id));
