@@ -35,7 +35,8 @@ exit;
 ### Initialise Project
 1. Open this [pre-configured Initializr project](https://start.spring.io/#!type=maven-project&language=java&packaging=jar&jvmVersion=21&groupId=com.cbfacademy&artifactId=restapiexercise&name=REST%20API%20Exercise&description=RESTful%20API%20exercise%20using%20Spring%20Boot&packageName=com.cbfacademy.restapiexercise&dependencies=web,data-jpa,mysql,devtools). Review the configured settings, but do not make any changes. Click "Generate" to download a zipped project.
 2. Ensure that your local repository is the current working directory in the terminal, then extract the downloaded zip file. **IMPORTANT:** Do NOT unzip the archive in (macOS) Finder or (Windows) Explorer as the extracted files won't be correctly positioned.
-   - macOS / Git Bash: `tar -xvf [download directory]/restapiexercise.zip --strip=1 -C .`, e.g. `tar -xvf ~/Downloads/restapiexercise.zip --strip=1 -C .`
+   - macOS: `tar -xvf [download directory]/restapiexercise.zip --strip=1 -C .`, e.g. `tar -xvf ~/Downloads/restapiexercise.zip --strip=1 -C .`
+   - Git Bash: `unzip [download directory]/restapiexercise.zip -d /tmp/unzipped && mv /tmp/unzipped/restapiexercise/.[!.]* .`, e.g. `unzip ~/Downloads/restapiexercise.zip -d /tmp/unzipped && mv /tmp/unzipped/restapiexercise/.[!.]* .`
    - Windows Command Prompt: `tar -xvf [download directory]\restapiexercise.zip --strip=1 -C %cd%`, e.g. `tar -xvf %USERPROFILE%\Downloads\restapiexercise.zip --strip=1 -C %cd%`
 3. Open your repository in VS Code
 4. Add the following values to src/main/resources/application.properties:
@@ -103,12 +104,13 @@ Stop the application by pressing `Ctrl + C`
     - `String lender`
     - `BigDecimal amount`
     - `Instant dateTime`
-3. Ensure the `id` field is set as the primary key and values are generated using the appropriate strategy
-4. Create getters and setters for each field, except `id`, which should only have a getter
-5. Create an `IOURepository` interface that extends `ListCrudRepository<IOU, UUID>`
-6. Ensure local.properties is correctly configured with your database details
-7. Start your API with `./mvnw clean spring-boot:run` (if it's already running, restart it) and confirm there are no errors
-8. Check your database contains an "ious" table with the correct columns and data types
+3. Ensure the `id` field is set as the primary key and values are generated using the appropriate strategy for a `UUID` field
+4. Define a constructor that accepts the following parameters: `IOU(String borrower, String lender, BigDecimal amount, Instant createdAt)`
+5. Define a default (parameterless) constructor that calls the parameterised constructor internally. Consider what appropriate default values should be passed to the parameters
+6. Create getter and setter methods for each field, except `id`, which should only have a getter
+7. Create an `IOURepository` interface that extends `ListCrudRepository<IOU, UUID>`
+8. If it's not already running, start your API with `./mvnw clean spring-boot:run`. Check the output and confirm there are no errors
+9. Check your database contains an "ious" table with the correct columns and data types
 
 ## Exercise 2
 
